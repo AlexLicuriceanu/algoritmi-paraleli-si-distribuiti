@@ -16,9 +16,9 @@ dimensiunea fisierului i.
 - Astept ca fiecare client sa trimita tracker-ului o lista cu toate
 fisierele pe care le detine si actualizez swarm-ul.
 - Pe post de "OK", trimit fiecarui client dimensiunile fisierelor.
-- Pornesc o bucla infinita unde astept mesaje de la clienti, diferen-
-tiate prin tag-uri (cu valori alese secvential pentru fiecare
-functionalitate, in timp ce rezolvam tema).
+- Pornesc o bucla infinita unde astept mesaje de la clienti, diferentiate
+prin tag-uri (cu valori alese secvential pentru fiecare functionalitate,
+in timp ce rezolvam tema).
 
 - Toate datele pentru un mesaj catre tracker vor fi puse intr-o
 structura care obligatoriu contine doua int-uri: `file_index` si
@@ -26,10 +26,10 @@ structura care obligatoriu contine doua int-uri: `file_index` si
 a obtine diferite functionalitati.
 
 - Tracker-ul primeste mesaj cu tag `3`: vrea lista de peers a fisierului 
-cu index `file_index` si segmentele pe care le detin.
+cu index `file_index` si segmentele pe care le detine.
 - Tag `6`: Clientul a terminat descarcarea segmentelor pentru fisierul de
 la `file_index`.
-- Tag `7`: Clientul a trimis catre swarm o actualizare cu fisierele pe
+- Tag `7`: Clientul a trimis catre swarm o actualizare cu hash-urile pe
 care le detine.
 - Tag `8`: Clientul a terminat de descarcat toate fisierele dorite. Cand
 tracker-ul primeste acest mesaj, verifica daca si restul clientilor au
@@ -53,10 +53,10 @@ nu are, semnalez tracker-ului ca acest client a terminat de descarcat tot.
 - Daca are fisiere de descarcat, pornesc o bucla infinita, unde:
 - Pentru fiecare fisier dorit, trimit tracker-ului o cerere pentru toti
 peers care sunt in swarm-ul fisierului.
-- Selectez un index-ul unui segment pe care nu il am.
+- Selectez index-ul unui segment pe care nu il am.
 - Caut in lista de peers obtinuta anterior un client care sa aiba segmentul
 dorit, insa clientul selectat sa fie diferit de cel de la care am cerut un
-segment la iteratia anterioara, daca exista.
+segment la iteratia anterioara, daca acesta exista.
 - Fac cerere catre clientul selectat si astept sa primesc hash-ul.
 - Trimit un mesaj de actualizare, cu tag `7` catre tracker, pentru hash-ul obtinut.
 - Daca am toate hash-urile din fisierul curent, acesta este complet si ii
