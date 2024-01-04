@@ -12,6 +12,8 @@
 #define HASH_SIZE 32
 #define MAX_CHUNKS 100
 
+#define MAX_FILES_BEFORE_UPDATING_TRACKER 10
+
 using namespace std;
 
 typedef struct {
@@ -161,6 +163,9 @@ void *download_thread_func(void *arg)
         return NULL;
     }
 
+    // Store the segment download history. First number is file_index, second is segment_index.
+    vector<pair<int, int>> download_history;
+
     while (true) {
 
         for (int i = 0; i < MAX_FILES; i++) {
@@ -231,13 +236,26 @@ void *download_thread_func(void *arg)
             // Save the received hash.
             files[i][segment_index] = hash;
             
-            // Tell the tracker that this client now has this hash.
-            tracker_message.code = 7;
-            tracker_message.file_index = i;
-            tracker_message.segment_index = segment_index;
+            // Add it to the download history.
+            download_history.push_back(make_pair(i, segment_index));
 
-            MPI_Ssend(&tracker_message, 1, create_tracker_message_datatype(), TRACKER_RANK, 7, MPI_COMM_WORLD);
+            // If the client has downloaded 10 files, update the tracker.
+            if (download_history.size() == MAX_FILES_BEFORE_UPDATING_TRACKER) {
+                for (int j = 0; j < download_history.size(); j++) {
 
+                    // Tell the tracker that this client now has this hash.
+                    tracker_message.code = 7;
+                    tracker_message.file_index = download_history[j].first;
+                    tracker_message.segment_index = download_history[j].second;
+
+                    MPI_Ssend(&tracker_message, 1, create_tracker_message_datatype(), TRACKER_RANK, 7, MPI_COMM_WORLD);
+                }
+
+                // Reset the history.
+                download_history.clear();
+            }
+
+            
             // Check if this file is complete.
             bool complete = true;
 
@@ -249,7 +267,7 @@ void *download_thread_func(void *arg)
             }
 
             if (complete) {
-    
+                
                 // Signal the tracker that the client has finished downloading this file.
                 tracker_message_t tracker_message;
                 tracker_message.code = 6;
@@ -328,30 +346,6 @@ void *upload_thread_func(void *arg)
     }
 
     return NULL;
-}
-
-
-void printSwarm(vector<vector<vector<int>>>& swarm, vector<int>&swarm_file_sizes, int num_clients) {
-    cout << "Swarm file sizes:" << endl;
-    for (int i = 0; i < MAX_FILES; i++) {
-        cout << index_to_name(i) << ": " << swarm_file_sizes[i] << endl;
-    }
-    cout << endl;
-
-    cout << "Swarm:" << endl;
-    for (int i = 0; i < MAX_FILES; i++) {
-        cout << index_to_name(i) << ":" << endl;
-
-        for (int j = 0; j < num_clients; j++) {
-            cout << "client " << j+1 << ":" << endl;
-
-            for (int k = 0; k < MAX_CHUNKS; k++) {
-                cout << swarm[i][j][k] << " ";
-            }
-            cout << endl;
-        }
-        cout << endl;
-    }
 }
 
 
